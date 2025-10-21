@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # Konfigurasi
 BOT_TOKEN = os.environ.get('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
 ADMIN_ID = int(os.environ.get('ADMIN_ID', '0'))  # ID Telegram admin
+PORT = int(os.environ.get('PORT', 8080))  # Port untuk Render.com
 
 # Storage untuk user data (dalam production sebaiknya gunakan database)
 user_emails = {}
