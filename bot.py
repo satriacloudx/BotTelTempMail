@@ -8,6 +8,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 from telegram.constants import ParseMode
 import logging
+from aiohttp import web
 
 # Logging setup
 logging.basicConfig(
@@ -18,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 # Konfigurasi
 BOT_TOKEN = os.environ.get('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-ADMIN_ID = int(os.environ.get('ADMIN_ID', '0'))  # ID Telegram admin
+ADMIN_ID = int(os.environ.get('ADMIN_ID', '0'))
 PORT = int(os.environ.get('PORT', 8080))  # Port untuk Render.com
 
-# Storage untuk user data (dalam production sebaiknya gunakan database)
+# Storage untuk user data
 user_emails = {}
 user_domains = {}
 custom_domains = set()
@@ -104,6 +105,195 @@ class TempMailBot:
 
 tempmail = TempMailBot()
 
+# Web server untuk Render.com
+async def health_check(request):
+    """Health check endpoint"""
+    return web.Response(text="TempMail Bot is running! ✅", status=200)
+
+async def index(request):
+    """Index page"""
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>TempMail Bot</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                background: white;
+                border-radius: 20px;
+                padding: 40px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 600px;
+                width: 100%;
+                text-align: center;
+            }
+            .logo {
+                font-size: 80px;
+                margin-bottom: 20px;
+            }
+            h1 {
+                color: #333;
+                margin-bottom: 10px;
+                font-size: 32px;
+            }
+            .subtitle {
+                color: #666;
+                margin-bottom: 30px;
+                font-size: 18px;
+            }
+            .status {
+                background: #d4edda;
+                color: #155724;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .features {
+                text-align: left;
+                margin: 30px 0;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+            }
+            .feature {
+                margin: 15px 0;
+                display: flex;
+                align-items: center;
+            }
+            .feature-icon {
+                font-size: 24px;
+                margin-right: 15px;
+            }
+            .button {
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 40px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: bold;
+                font-size: 18px;
+                transition: transform 0.3s;
+                margin-top: 20px;
+            }
+            .button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            }
+            .stats {
+                display: flex;
+                justify-content: space-around;
+                margin: 30px 0;
+            }
+            .stat {
+                text-align: center;
+            }
+            .stat-number {
+                font-size: 36px;
+                font-weight: bold;
+                color: #667eea;
+            }
+            .stat-label {
+                color: #666;
+                font-size: 14px;
+                margin-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="logo">📧</div>
+            <h1>TempMail Bot</h1>
+            <p class="subtitle">Bot Telegram untuk Email Temporary</p>
+            
+            <div class="status">
+                ✅ Bot Aktif & Berjalan 24/7
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">🚀</span>
+                    <div>
+                        <strong>Generate Email Instan</strong><br>
+                        Buat email temporary dalam hitungan detik
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📬</span>
+                    <div>
+                        <strong>Auto-Check Inbox</strong><br>
+                        Notifikasi otomatis saat email masuk
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🌐</span>
+                    <div>
+                        <strong>Multi Domain</strong><br>
+                        Pilih dari berbagai domain tersedia
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">⚡</span>
+                    <div>
+                        <strong>Custom Domain</strong><br>
+                        Tambah domain sendiri (Admin)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Email</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">Domain</div>
+                </div>
+            </div>
+            
+            <a href="https://t.me/YOUR_BOT_USERNAME" class="button">
+                🤖 Buka Bot
+            </a>
+            
+            <p style="margin-top: 30px; color: #999; font-size: 14px;">
+                Powered by Render.com | Made with ❤️
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    return web.Response(text=html, content_type='text/html')
+
+async def start_web_server():
+    """Start web server untuk Render.com"""
+    app = web.Application()
+    app.router.add_get('/', index)
+    app.router.add_get('/health', health_check)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', PORT)
+    await site.start()
+    logger.info(f"🌐 Web server running on port {PORT}")
+
+# Bot handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler untuk command /start"""
     user = update.effective_user
@@ -331,7 +521,7 @@ async def check_inbox(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     
     keyboard = []
-    for msg in messages[:10]:  # Limit 10 pesan terbaru
+    for msg in messages[:10]:
         subject = msg.get('subject', 'No Subject')[:40]
         sender = msg.get('from', 'Unknown')
         date = msg.get('date', '')
@@ -391,7 +581,7 @@ async def read_message_detail(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     # Bersihkan HTML tags
     body = re.sub('<[^<]+?>', '', body)
-    body = body[:1000]  # Limit 1000 karakter
+    body = body[:1000]
     
     detail_text = f"""
 📧 <b>{subject}</b>
@@ -581,8 +771,13 @@ def main():
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_error_handler(error_handler)
     
+    # Start web server dan bot
+    loop = asyncio.get_event_loop()
+    loop.create_task(start_web_server())
+    
     # Start bot
     logger.info("🚀 Bot started!")
+    logger.info(f"🌐 Web server on port {PORT}")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
